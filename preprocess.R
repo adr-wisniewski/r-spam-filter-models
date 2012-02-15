@@ -8,7 +8,9 @@ library("knnflex")	# knn
 library("kernlab")	# svm
 library("lsa")		# cosine distance
 
-# preprocessing options
+########################################################################
+### data preprocessing
+########################################################################
 preprocess.options.stemming <- TRUE
 preprocess.options.minimumTermLength <- 3
 preprocess.options.maximumTermLength <- 50
@@ -188,6 +190,9 @@ preprocess.do <- function() {
 	return(problem)
 }
 
+########################################################################
+### data tranformation
+########################################################################
 transform.toBinary<-function(data) {
 	result <- data
 	result[result > 1] <- 1
@@ -214,6 +219,10 @@ transform.randomize<-function(data) {
 	return(result)
 }
 
+
+########################################################################
+### model options
+########################################################################
 spamfilter.opt.nb.threshold <- 0.001
 
 spamfilter.opt.knn.k <- 3
@@ -225,6 +234,9 @@ spamfilter.opt.svm.cost <- 1
 
 spamfilter.opt.folds <- 5
 
+########################################################################
+### cross validation adapter
+########################################################################
 spamfilter.crossValidate <- function(data, modelFunction, folds) {
 	testDataPerFold <- nrow(data) / folds
 	allFp <- c(0)
@@ -257,6 +269,9 @@ spamfilter.crossValidate <- function(data, modelFunction, folds) {
 	return(list("fpr"=allFp, "fnr"=allFn, "acc"=acc))
 }
 
+########################################################################
+### model building and prediction
+########################################################################
 spamfilter.bayes <- function(data, dataIndices, testIndices) {
 	model <- naiveBayes(spam ~ ., data, dataIndices)
 	results <- predict(model, data[testIndices,-1], threshold=spamfilter.opt.nb.threshold)
@@ -290,6 +305,9 @@ spamfilter.svm <- function(data, dataIndices, testIndices) {
 	return(results)
 }
 
+########################################################################
+### testing functions
+########################################################################
 spamfilter.test_bayes_threshold<-function(data) {
 	old <- spamfilter.opt.nb.threshold
 	result <- list()
@@ -389,6 +407,10 @@ spamfilter.test_svm<-function(data) {
 	
 	return(results)
 }
+
+########################################################################
+### execute this to prepare test data
+########################################################################
 #problem <- preprocess.do()
 #problem$dataset <- transform.toBinary(problem$randomize)
 #problem$dataset_binary <- transform.toBinary(problem$dataset)
@@ -397,8 +419,25 @@ spamfilter.test_svm<-function(data) {
 #write.table(problem$dataset_binary, "./data_bin.txt")
 #write.table(problem$dataset_tfidf, "./data_tf.txt")
 
+########################################################################
+### execute this to read tested data
+########################################################################
 #d <- read.table("d2.txt")
 #d_bin <- transform.toBinary(d)
+## some classifier silently assume that category is a factor
+## saving and loading table resets it back to vector
 #d$spam <- factor(d$spam)
 #d_bin$spam <- factor(d_bin$spam)
 
+########################################################################
+### execute this to launch tests
+########################################################################
+#spamfilter.test_bayes_threshold(d)
+#spamfilter.test_bayes_apriori(d)
+#spamfilter.test_svm(d)
+#spamfilter.test_knn(d)
+#
+#spamfilter.test_bayes_threshold(d_bin)
+#spamfilter.test_bayes_apriori(d_bin)
+#spamfilter.test_svm(d_bin)
+#spamfilter.test_knn(d_bin)
